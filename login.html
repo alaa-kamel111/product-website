@@ -213,23 +213,6 @@
           </div>
         </section>
 
-        <section class="card card-secondary">
-          <h1>Admin access</h1>
-          <p>
-            Only Eng. Alaa Kamel can manage products and prices. Use the private admin credentials to open the
-            dashboard.
-          </p>
-          <p class="status">
-            Admin username: <strong>alaa</strong><br />
-            Admin password: <strong>0000</strong>
-          </p>
-          <div class="btn-row" style="margin-top: 1rem;">
-            <a class="btn btn-ghost" href="admin.html">Open admin dashboard</a>
-          </div>
-          <div class="link-row">
-            <span class="pill pill-strong">Visitors can never change products from the public website.</span>
-          </div>
-        </section>
       </div>
     </div>
 
@@ -264,12 +247,23 @@
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value;
             try {
-              const result = await api('/api/users/login', {
-                method: 'POST',
-                body: JSON.stringify({ username, password })
-              });
+              const raw = localStorage.getItem('alaa-store-users');
+              const users = raw ? JSON.parse(raw) : [];
+              const user = Array.isArray(users)
+                ? users.find((u) => u.username === username && u.password === password)
+                : null;
+
+              if (!user) {
+                throw new Error('Wrong username or password');
+              }
+
+              localStorage.setItem(
+                'alaa-store-current-user',
+                JSON.stringify({ username: user.username, fullName: user.fullName || '' }),
+              );
+
               statusEl.classList.remove('status--error');
-              statusEl.textContent = 'Welcome, ' + result.username + '. Redirecting to the store...';
+              statusEl.textContent = 'Welcome, ' + user.username + '. Redirecting to the store...';
               setTimeout(function () {
                 window.location.href = 'index.html';
               }, 900);

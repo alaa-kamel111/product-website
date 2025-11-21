@@ -500,6 +500,35 @@
         color: var(--muted);
       }
 
+      .category-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+
+      .filter-chip {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.7);
+        padding: 0.25rem 0.7rem;
+        font-size: 0.78rem;
+        background: #f9fafb;
+        color: #4b5563;
+        cursor: pointer;
+        transition: background-color 0.12s ease-out, color 0.12s ease-out, border-color 0.12s ease-out,
+          box-shadow 0.12s ease-out;
+      }
+
+      .filter-chip:hover {
+        background: #e5e7eb;
+      }
+
+      .filter-chip.active {
+        background: #111827;
+        color: #e5e7eb;
+        border-color: #111827;
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.35);
+      }
+
       .product-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -960,18 +989,15 @@
           <div>
             <h3>Products</h3>
             <p>
-              Curated products selected by Eng. Alaa Kamel. Prices and availability are controlled only by the
-              admin, visitors can browse and order via WhatsApp.
+              Curated products selected by Eng. Alaa Kamel. Organized into watches, wallets, and accessories for
+              men and women.
             </p>
             <div class="tag-row">
-              <span class="tag">Admin‑managed catalog</span>
-              <span class="tag soft">Live data from secure backend</span>
+              <span class="tag">Watches</span>
+              <span class="tag">Wallets</span>
+              <span class="tag soft">Accessories</span>
             </div>
           </div>
-          <small>
-            Admin?
-            <a href="admin.html" style="color: #2563eb; text-decoration: none;">Open dashboard</a>
-          </small>
         </div>
 
         <div class="products-layout">
@@ -988,6 +1014,15 @@
               <div class="filter-pill" id="catalog-note">
                 Product list and prices are managed exclusively by Eng. Alaa Kamel.
               </div>
+            </div>
+            <div class="category-filters" id="category-filters">
+              <button class="filter-chip active" data-category-filter="all">All products</button>
+              <button class="filter-chip" data-category-filter="Men's Watches">Men's watches</button>
+              <button class="filter-chip" data-category-filter="Women's Watches">Women's watches</button>
+              <button class="filter-chip" data-category-filter="Men's Wallets">Men's wallets</button>
+              <button class="filter-chip" data-category-filter="Women's Wallets">Women's wallets</button>
+              <button class="filter-chip" data-category-filter="Men's Accessories">Men's accessories</button>
+              <button class="filter-chip" data-category-filter="Women's Accessories">Women's accessories</button>
             </div>
 
             <div id="product-list" class="product-grid"></div>
@@ -1061,6 +1096,7 @@
            * Public storefront – data comes from the backend API.
            */
           let products = [];
+          let activeCategory = 'all';
 
           const productListEl = document.getElementById('product-list');
           const productEmptyEl = document.getElementById('product-empty');
@@ -1075,6 +1111,7 @@
           const metricProduct3Price = document.getElementById('metric-product-3-price');
 
           const searchInput = document.getElementById('search-input');
+          const categoryFiltersRoot = document.getElementById('category-filters');
 
           if (catalogNoteEl) {
             catalogNoteEl.textContent = 'Product list and prices are managed exclusively by Eng. Alaa Kamel.';
@@ -1091,37 +1128,79 @@
               }
             } catch (e) {
               console.warn('Failed to load products from API:', e);
-              // Fallback: static demo products so the site still looks complete on static hosts (like GitHub Pages)
+              // Fallback: curated static products so the site still looks complete on static hosts (like GitHub Pages)
               products = [
                 {
-                  id: 'p1',
-                  name: 'Smart Desk Lamp',
-                  price: 39,
-                  category: 'Office',
-                  description:
-                    'Adjustable LED desk lamp with warm & cool light modes and USB charging.',
+                  id: 'mw1',
+                  name: 'Classic Leather Watch',
+                  price: 120,
+                  category: "Men's Watches",
+                  description: 'Brown leather strap, minimal black dial – perfect for everyday wear.',
                   image:
-                    'https://images.pexels.com/photos/667838/pexels-photo-667838.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    'https://images.pexels.com/photos/190819/pexels-photo-190819.jpeg?auto=compress&cs=tinysrgb&w=800',
                 },
                 {
-                  id: 'p2',
-                  name: 'Wireless Keyboard & Mouse',
+                  id: 'mw2',
+                  name: 'Sport Chronograph Watch',
+                  price: 180,
+                  category: "Men's Watches",
+                  description: 'Stainless steel chronograph with water‑resistant design and date display.',
+                  image:
+                    'https://images.pexels.com/photos/1908199/pexels-photo-1908199.jpeg?auto=compress&cs=tinysrgb&w=800',
+                },
+                {
+                  id: 'ww1',
+                  name: 'Elegant Rose Gold Watch',
+                  price: 155,
+                  category: "Women's Watches",
+                  description: 'Rose gold case with slim mesh strap – a refined, feminine look.',
+                  image:
+                    'https://images.pexels.com/photos/179909/pexels-photo-179909.jpeg?auto=compress&cs=tinysrgb&w=800',
+                },
+                {
+                  id: 'ww2',
+                  name: 'Minimal Steel Watch',
+                  price: 139,
+                  category: "Women's Watches",
+                  description: 'Silver mesh strap and clean white dial for a modern, minimal style.',
+                  image:
+                    'https://images.pexels.com/photos/125779/pexels-photo-125779.jpeg?auto=compress&cs=tinysrgb&w=800',
+                },
+                {
+                  id: 'mwlt1',
+                  name: "Men's Premium Leather Wallet",
+                  price: 69,
+                  category: "Men's Wallets",
+                  description: 'Hand‑stitched genuine leather wallet with multiple card and cash slots.',
+                  image:
+                    'https://images.pexels.com/photos/164571/pexels-photo-164571.jpeg?auto=compress&cs=tinysrgb&w=800',
+                },
+                {
+                  id: 'wwlt1',
+                  name: "Women's Zip Wallet",
                   price: 59,
-                  category: 'Accessories',
-                  description:
-                    'Slim wireless combo with silent keys and long‑life battery – perfect for any desk.',
+                  category: "Women's Wallets",
+                  description: 'Compact zip‑around wallet with room for cards, coins, and cash.',
                   image:
-                    'https://images.pexels.com/photos/461064/pexels-photo-461064.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    'https://images.pexels.com/photos/325876/pexels-photo-325876.jpeg?auto=compress&cs=tinysrgb&w=800',
                 },
                 {
-                  id: 'p3',
-                  name: 'USB‑C Multiport Hub',
-                  price: 29,
-                  category: 'Electronics',
-                  description:
-                    'Expand your laptop ports with HDMI, USB‑A, card reader and fast charging support.',
+                  id: 'ma1',
+                  name: "Men's Stainless Bracelet",
+                  price: 45,
+                  category: "Men's Accessories",
+                  description: 'Brushed stainless steel bracelet that pairs well with any watch.',
                   image:
-                    'https://images.pexels.com/photos/1054397/pexels-photo-1054397.jpeg?auto=compress&cs=tinysrgb&w=800',
+                    'https://images.pexels.com/photos/1191531/pexels-photo-1191531.jpeg?auto=compress&cs=tinysrgb&w=800',
+                },
+                {
+                  id: 'wa1',
+                  name: "Women's Charm Bracelet",
+                  price: 49,
+                  category: "Women's Accessories",
+                  description: 'Delicate charm bracelet with polished beads for a subtle shine.',
+                  image:
+                    'https://images.pexels.com/photos/1158438/pexels-photo-1158438.jpeg?auto=compress&cs=tinysrgb&w=800',
                 },
               ];
             }
@@ -1154,11 +1233,14 @@
 
           function getFilteredProducts() {
             const query = (searchInput && searchInput.value ? searchInput.value : '').toLowerCase().trim();
-            if (!query) return products;
 
             return products.filter((p) => {
               const text = `${p.name} ${p.category} ${p.description}`.toLowerCase();
-              return text.includes(query);
+              const matchesSearch = !query || text.includes(query);
+              const cat = (p.category || '').toLowerCase();
+              const matchesCategory =
+                activeCategory === 'all' || cat === activeCategory.toLowerCase();
+              return matchesSearch && matchesCategory;
             });
           }
 
@@ -1266,6 +1348,20 @@
           if (searchInput) {
             searchInput.addEventListener('input', function () {
               renderProducts();
+            });
+          }
+
+          if (categoryFiltersRoot) {
+            const chips = categoryFiltersRoot.querySelectorAll('[data-category-filter]');
+            chips.forEach(function (chip) {
+              chip.addEventListener('click', function () {
+                const value = chip.getAttribute('data-category-filter') || 'all';
+                activeCategory = value;
+                chips.forEach(function (c) {
+                  c.classList.toggle('active', c === chip);
+                });
+                renderProducts();
+              });
             });
           }
 

@@ -283,11 +283,18 @@
             }
 
             try {
-              const result = await api('/api/users/register', {
-                method: 'POST',
-                body: JSON.stringify({ fullName, username, password })
-              });
-              statusEl.textContent = 'Account created for ' + result.username + '. Redirecting to login...';
+              const raw = localStorage.getItem('alaa-store-users');
+              const users = raw ? JSON.parse(raw) : [];
+              const list = Array.isArray(users) ? users : [];
+
+              if (list.some((u) => u.username === username)) {
+                throw new Error('This username is already taken.');
+              }
+
+              list.push({ username, password, fullName });
+              localStorage.setItem('alaa-store-users', JSON.stringify(list));
+
+              statusEl.textContent = 'Account created for ' + username + '. Redirecting to login...';
               setTimeout(function () {
                 window.location.href = 'login.html';
               }, 1000);
