@@ -1,0 +1,14 @@
+{
+  "name": "product-website",
+  "version": "1.0.0",
+  "description": "Product website for Eng. Alaa Kamel with admin-managed product catalog and WhatsApp ordering.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cookie-parser": "^1.4.6"
+  }
+}
