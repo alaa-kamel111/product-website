@@ -92,6 +92,43 @@
         font-size: 0.9rem;
       }
 
+      .cart-button {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.8);
+        background: rgba(15, 23, 42, 0.05);
+        color: #e5e7eb;
+        padding: 0.4rem 0.9rem;
+        font-size: 0.82rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        transition: background-color 0.12s ease-out, box-shadow 0.12s ease-out, transform 0.08s ease-out;
+      }
+
+      .cart-button:hover {
+        background: rgba(15, 23, 42, 0.18);
+        box-shadow: 0 6px 16px rgba(15, 23, 42, 0.4);
+        transform: translateY(-1px);
+      }
+
+      .cart-button span {
+        font-weight: 600;
+      }
+
+      .admin-hotspot {
+        display: inline-block;
+        width: 22px;
+        height: 22px;
+        opacity: 0;
+      }
+
+      .admin-hotspot:focus {
+        opacity: 0.2;
+        outline: 2px dashed #22c55e;
+        outline-offset: 2px;
+      }
+
       .nav-links a {
         color: #e5e7eb;
         text-decoration: none;
@@ -895,6 +932,8 @@
           <a href="#contact">Contact</a>
           <a href="login.html">Login</a>
           <a href="register.html">Create account</a>
+          <button class="cart-button" id="cart-button">🛒 Cart (<span id="cart-count">0</span>)</button>
+          <a href="admin.html" class="admin-hotspot" aria-label="Admin area"></a>
         </nav>
       </div>
     </header>
@@ -922,7 +961,7 @@
             </a>
             <a
               class="btn btn-whatsapp"
-              href="https://wa.me/201025900101?text=Hello%20Eng.%20Alaa%2C%20I%20am%20interested%20in%20your%20products."
+href="https://wa.me/201025900101?text=Hello%20Eng.%20Alaa%2C%20I%20am%20interested%20in%20your%20products."
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -1055,7 +1094,7 @@
             </div>
             <a
               class="btn btn-whatsapp"
-              href="https://wa.me/201025900101?text=Hello%20Eng.%20Alaa%2C%20I%27d%20like%20to%20know%20more%20about%20your%20products."
+href="https://wa.me/201025900101?text=Hello%20Eng.%20Alaa%2C%20I%27d%20like%20to%20know%20more%20about%20your%20products."
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -1097,6 +1136,7 @@
            */
           let products = [];
           let activeCategory = 'all';
+          let cart = [];
 
           const productListEl = document.getElementById('product-list');
           const productEmptyEl = document.getElementById('product-empty');
@@ -1112,6 +1152,8 @@
 
           const searchInput = document.getElementById('search-input');
           const categoryFiltersRoot = document.getElementById('category-filters');
+          const cartButton = document.getElementById('cart-button');
+          const cartCountEl = document.getElementById('cart-count');
 
           if (catalogNoteEl) {
             catalogNoteEl.textContent = 'Product list and prices are managed exclusively by Eng. Alaa Kamel.';
@@ -1244,6 +1286,82 @@
             });
           }
 
+          function updateCartCount() {
+            if (!cartCountEl) return;
+            const totalItems = cart.reduce(function (sum, item) {
+              return sum + (item.quantity || 0);
+            }, 0);
+            cartCountEl.textContent = String(totalItems);
+          }
+
+          function addProductToCart(product, displayPriceText) {
+            const qtyStr = window.prompt('How many pieces?', '1');
+            if (!qtyStr) return;
+            const qty = parseInt(qtyStr, 10);
+            if (!qty || qty <= 0) {
+              window.alert('Please enter a valid quantity.');
+              return;
+            }
+
+            let unitPrice = 0;
+            if (product.price != null && !isNaN(Number(product.price))) {
+              unitPrice = Number(product.price);
+            } else if (displayPriceText) {
+              const numeric = Number((displayPriceText || '').replace(/[^0-9.]/g, ''));
+              unitPrice = !isNaN(numeric) ? numeric : 0;
+            }
+
+            const existing = cart.find(function (item) {
+              return item.id === product.id;
+            });
+            if (existing) {
+              existing.quantity += qty;
+            } else {
+              cart.push({
+                id: product.id,
+                name: product.name || 'Product',
+                price: unitPrice,
+                quantity: qty,
+              });
+            }
+
+            updateCartCount();
+            window.alert('Added to cart. When you are ready, click the cart to send your order on WhatsApp.');
+          }
+
+          function checkoutCart() {
+            if (!cart.length) {
+              window.alert('Your cart is empty.');
+              return;
+            }
+
+            let lines = ['Hello Eng. Alaa, I would like to order:'];
+            let total = 0;
+
+            cart.forEach(function (item) {
+              const lineTotal = (item.price || 0) * (item.quantity || 0);
+              total += lineTotal;
+              lines.push(
+                '- ' +
+                  (item.quantity || 0) +
+                  ' x ' +
+                  item.name +
+                  ' ($' +
+                  (item.price || 0).toFixed(2) +
+                  ' each, $' +
+                  lineTotal.toFixed(2) +
+                  ' total)',
+              );
+            });
+
+            lines.push('');
+            lines.push('Total: $' + total.toFixed(2));
+
+            const msg = lines.join('\n');
+const url = 'https://wa.me/201025900101?text=' + encodeURIComponent(msg);
+            window.open(url, '_blank');
+          }
+
           function renderProducts() {
             if (!productListEl || !productEmptyEl) return;
 
@@ -1269,6 +1387,11 @@
                 image.style.backgroundImage =
                   'linear-gradient(135deg, #bfdbfe 0%, #eff6ff 35%, #e0f2fe 70%, #a5b4fc 100%)';
               }
+              image.addEventListener('click', function () {
+                if (product.image) {
+                  window.open(product.image, '_blank');
+                }
+              });
               card.appendChild(image);
 
               const titleRow = document.createElement('div');
@@ -1320,22 +1443,27 @@
               const actions = document.createElement('div');
               actions.className = 'product-actions';
 
-              const spacer = document.createElement('div');
-              spacer.className = 'product-actions-left';
+              const actionsLeft = document.createElement('div');
+              actionsLeft.className = 'product-actions-left';
 
-              const waLink = document.createElement('a');
-              waLink.href =
-                'https://wa.me/201025900101?text=' +
-                encodeURIComponent(
-                  `Hello Eng. Alaa, I would like to order: ${product.name} (${price.textContent}).`,
-                );
-              waLink.target = '_blank';
-              waLink.rel = 'noopener noreferrer';
-              waLink.className = 'btn-whatsapp-small';
-              waLink.innerHTML = '<span>Order via WhatsApp</span>';
+              const addBtn = document.createElement('button');
+              addBtn.type = 'button';
+              addBtn.className = 'btn-ghost';
+              addBtn.textContent = 'Add to cart';
+              addBtn.addEventListener('click', function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                addProductToCart(product, price.textContent);
+              });
 
-              actions.appendChild(spacer);
-              actions.appendChild(waLink);
+              actionsLeft.appendChild(addBtn);
+
+              const hint = document.createElement('div');
+              hint.className = 'badge-pill';
+              hint.textContent = 'Use cart to order via WhatsApp';
+
+              actions.appendChild(actionsLeft);
+              actions.appendChild(hint);
 
               card.appendChild(actions);
 
@@ -1348,6 +1476,12 @@
           if (searchInput) {
             searchInput.addEventListener('input', function () {
               renderProducts();
+            });
+          }
+
+          if (cartButton) {
+            cartButton.addEventListener('click', function () {
+              checkoutCart();
             });
           }
 
